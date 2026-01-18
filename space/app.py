@@ -3,6 +3,7 @@ import joblib
 import streamlit as st
 from huggingface_hub import hf_hub_download
 import numpy as np
+import pandas as pd
 
 st.set_page_config(page_title="Engine Predictive Maintenance", page_icon="🛠️", layout="wide")
 st.title("🚗 Engine Predictive Maintenance – Failure Risk Prediction")
@@ -76,9 +77,15 @@ if st.button("🔍 Predict Maintenance Need", type="primary", use_container_widt
     if model is None:
         st.error("❌ Model not loaded. Cannot make predictions.")
     else:
-        # Prepare input data
-        X = np.array([[engine_rpm, lub_oil_pressure, fuel_pressure, coolant_pressure,
-                       lub_oil_temperature, coolant_temperature]])
+        # Prepare input data as DataFrame with column names
+        X = pd.DataFrame({
+            'engine_rpm': [engine_rpm],
+            'lub_oil_pressure': [lub_oil_pressure],
+            'fuel_pressure': [fuel_pressure],
+            'coolant_pressure': [coolant_pressure],
+            'lub_oil_temperature': [lub_oil_temperature],
+            'coolant_temperature': [coolant_temperature]
+        })
 
         try:
             with st.spinner("Analyzing sensor data..."):
