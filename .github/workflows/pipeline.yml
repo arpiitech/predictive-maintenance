@@ -68,17 +68,23 @@ jobs:
           python - << 'PY'
           from huggingface_hub import HfApi
           import os
+          hf_token = os.environ.get("HF_TOKEN")
           org = os.environ.get("HF_USERNAME_OR_ORG")
           space_id = f"{org}/engine-predictive-maintenance-app"
           api = HfApi()
-          try:
-            api.create_repo(space_id, repo_type="space", space_sdk="streamlit")
-          except Exception:
-            pass
+          # Create space with exist_ok=True and authentication
+          api.create_repo(
+              repo_id=space_id,
+              repo_type="space",
+              space_sdk="streamlit",
+              exist_ok=True,
+              token=hf_token
+          )
+          print(f"✅ Space created/verified: {space_id}")
           # upload app files
-          api.upload_file(path_or_fileobj="space/app.py", path_in_repo="app.py", repo_id=space_id, repo_type="space")
-          api.upload_file(path_or_fileobj="space/requirements.txt", path_in_repo="requirements.txt", repo_id=space_id, repo_type="space")
-          api.upload_file(path_or_fileobj="space/README.md", path_in_repo="README.md", repo_id=space_id, repo_type="space")
+          api.upload_file(path_or_fileobj="space/app.py", path_in_repo="app.py", repo_id=space_id, repo_type="space", token=hf_token)
+          api.upload_file(path_or_fileobj="space/requirements.txt", path_in_repo="requirements.txt", repo_id=space_id, repo_type="space", token=hf_token)
+          api.upload_file(path_or_fileobj="space/README.md", path_in_repo="README.md", repo_id=space_id, repo_type="space", token=hf_token)
           print(f"Pushed Space files to https://huggingface.co/spaces/{space_id}")
           PY
 
