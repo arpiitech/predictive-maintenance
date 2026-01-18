@@ -1,0 +1,38 @@
+[
+  {
+    "model": "logreg",
+    "best_params": {
+      "clf__C": 1.0
+    },
+    "accuracy": 0.661121064755567,
+    "precision": 0.678694697207405,
+    "recall": 0.8781973203410475,
+    "f1": 0.7656637168141593,
+    "roc_auc": 0.6917604929690724
+  },
+  {
+    "model": "rf",
+    "best_params": {
+      "clf__max_depth": 10,
+      "clf__n_estimators": 200
+    },
+    "accuracy": 0.6616329664704377,
+    "precision": 0.687110528041981,
+    "recall": 0.8505887129516849,
+    "f1": 0.7601596516690856,
+    "roc_auc": 0.6995533901745838
+  },
+  {
+    "model": "gb",
+    "best_params": {
+      "clf__learning_rate": 0.05,
+      "clf__max_depth": 2,
+      "clf__n_estimators": 200
+    },
+    "accuracy": 0.6664960327617098,
+    "precision": 0.6912928759894459,
+    "recall": 0.8509947218838815,
+    "f1": 0.7628753412192902,
+    "roc_auc": 0.7034387325773246
+  }
+]

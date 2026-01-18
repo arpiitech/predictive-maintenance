@@ -1,0 +1,93 @@
+name: predictive-maintenance-ci
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 3 * * 1"   # weekly retrain (Mon 03:00 UTC)
+
+jobs:
+  build-train-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      HF_USERNAME_OR_ORG: arnavarpit
+      HF_DATASET_NAME: engine-predictive-maintenance
+      HF_DATASET_REPO: arnavarpit/engine-predictive-maintenance
+      MODEL_NAME: engine-predictive-maintenance-sklearn
+      HF_MODEL_REPO: arnavarpit/engine-predictive-maintenance-sklearn
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          python -c "import huggingface_hub as h; h.login(token='${{ secrets.HF_TOKEN }}')"
+
+      # Data registration (first run will create dataset;
+      # later runs are idempotent since repo exists)
+      - name: Register dataset on HF Datasets
+        run: |
+          python src/data/register_dataset.py
+
+      - name: EDA (save figures)
+        run: |
+          python src/data/eda.py
+
+      - name: Prepare splits & push back to HF Datasets
+        env:
+          HF_DATASET_REPO: ${{ env.HF_DATASET_REPO }}
+        run: |
+          python src/data/prepare.py
+
+      - name: Train, tune, evaluate & push best model to HF Model Hub
+        env:
+          HF_USERNAME_OR_ORG: ${{ env.HF_USERNAME_OR_ORG }}
+          MODEL_NAME: ${{ env.MODEL_NAME }}
+          HF_DATASET_REPO: ${{ env.HF_DATASET_REPO }}
+        run: |
+          python -m src.models.train
+
+      # Deploy/refresh HF Space app: push latest app files
+      - name: Push Streamlit app to Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          python - << 'PY'
+          from huggingface_hub import HfApi
+          import os
+          org = os.environ.get("HF_USERNAME_OR_ORG")
+          space_id = f"{org}/engine-predictive-maintenance-app"
+          api = HfApi()
+          try:
+            api.create_repo(space_id, repo_type="space", space_sdk="streamlit")
+          except Exception:
+            pass
+          # upload app files
+          api.upload_file(path_or_fileobj="space/app.py", path_in_repo="app.py", repo_id=space_id, repo_type="space")
+          api.upload_file(path_or_fileobj="space/requirements.txt", path_in_repo="requirements.txt", repo_id=space_id, repo_type="space")
+          api.upload_file(path_or_fileobj="space/README.md", path_in_repo="README.md", repo_id=space_id, repo_type="space")
+          print(f"Pushed Space files to https://huggingface.co/spaces/{space_id}")
+          PY
+
+      # Upload artifacts (optional)
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: outputs
+          path: |
+            outputs/
+            artifacts/
