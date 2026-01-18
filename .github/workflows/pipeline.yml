@@ -76,7 +76,7 @@ jobs:
           api.create_repo(
               repo_id=space_id,
               repo_type="space",
-              space_sdk="streamlit",
+              space_sdk="docker",
               exist_ok=True,
               token=hf_token
           )
@@ -84,6 +84,7 @@ jobs:
           # upload app files
           api.upload_file(path_or_fileobj="space/app.py", path_in_repo="app.py", repo_id=space_id, repo_type="space", token=hf_token)
           api.upload_file(path_or_fileobj="space/requirements.txt", path_in_repo="requirements.txt", repo_id=space_id, repo_type="space", token=hf_token)
+          api.upload_file(path_or_fileobj="space/Dockerfile", path_in_repo="Dockerfile", repo_id=space_id, repo_type="space", token=hf_token)
           api.upload_file(path_or_fileobj="space/README.md", path_in_repo="README.md", repo_id=space_id, repo_type="space", token=hf_token)
           print(f"Pushed Space files to https://huggingface.co/spaces/{space_id}")
           PY
