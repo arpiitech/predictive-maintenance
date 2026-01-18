@@ -6,6 +6,8 @@ colorTo: green
 sdk: docker
 app_port: 7860
 pinned: false
+env:
+  - HF_MODEL_REPO=arnavarpit/engine-predictive-maintenance-sklearn
 ---
 
 # Engine Predictive Maintenance App
